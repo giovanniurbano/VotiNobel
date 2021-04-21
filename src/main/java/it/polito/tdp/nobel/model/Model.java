@@ -1,5 +1,6 @@
 package it.polito.tdp.nobel.model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,7 +9,7 @@ import it.polito.tdp.nobel.db.EsameDAO;
 
 public class Model {
 	private List<Esame> partenza;
-	private Set<Esame> soluzioneMigliore;
+	private List<Esame> soluzioneMigliore;
 	private double mediaSoluzioneMigliore;
 	
 	public Model() {
@@ -16,19 +17,19 @@ public class Model {
 		this.partenza = dao.getTuttiEsami();
 	}
 	
-	public Set<Esame> calcolaSottoinsiemeEsami(int numeroCrediti) {
-		Set<Esame> parziale = new HashSet<Esame>();
-		soluzioneMigliore = new HashSet<Esame>();
+	public List<Esame> calcolaSottoinsiemeEsami(int numeroCrediti) {
+		List<Esame> parziale = new ArrayList<Esame>();
+		soluzioneMigliore = new ArrayList<Esame>();
 		mediaSoluzioneMigliore = 0;
 		
-		//cerca1(parziale, 0, numeroCrediti);
-		cerca2(parziale, 0, numeroCrediti);
+		cerca1(parziale, 0, numeroCrediti);
+		//cerca2(parziale, 0, numeroCrediti);
 		
 		return soluzioneMigliore;	
 	}
 
 	//COMPLESSITA' 2^N
-	private void cerca2(Set<Esame> parziale, int L, int m) {
+	private void cerca2(List<Esame> parziale, int L, int m) {
 		//casi terminali
 		
 		//PARZIALE.sommaCrediti() >= m
@@ -39,7 +40,7 @@ public class Model {
 		if(crediti == m) {
 			double media = this.calcolaMedia(parziale);
 			if(media > mediaSoluzioneMigliore) {
-				soluzioneMigliore = new HashSet<>(parziale);
+				soluzioneMigliore = new ArrayList<>(parziale);
 				mediaSoluzioneMigliore = media;
 			}
 			return;
@@ -61,7 +62,7 @@ public class Model {
 	}
 
 	// COMPLESSITA' N! 
-	private void cerca1(Set<Esame> parziale, int L, int m) {
+	private void cerca1(List<Esame> parziale, int L, int m) {
 		//casi terminali
 		
 		//PARZIALE.sommaCrediti() >= m
@@ -72,7 +73,7 @@ public class Model {
 		if(crediti == m) {
 			double media = this.calcolaMedia(parziale);
 			if(media > mediaSoluzioneMigliore) {
-				soluzioneMigliore = new HashSet<>(parziale);
+				soluzioneMigliore = new ArrayList<>(parziale);
 				mediaSoluzioneMigliore = media;
 			}
 			return;
@@ -85,16 +86,34 @@ public class Model {
 		}
 		
 		//generare sottoproblemi
-		for(Esame e : partenza) {
+		/*for(Esame e : partenza) {
 			if(!parziale.contains(e)) {
 				parziale.add(e);
 				cerca1(parziale, L+1, m);
 				parziale.remove(e);
 			}
+		}*/
+		/*for(int i=0; i<partenza.size(); i++) {
+			if(!parziale.contains(partenza.get(i)) && i>=L) {
+				parziale.add(partenza.get(i));
+				cerca1(parziale, L+1, m);
+				parziale.remove(partenza.get(i));
+			}
+		}*/
+		int lastIndex = 0;
+		if(parziale.size() > 0)
+			lastIndex = partenza.indexOf(parziale.get(parziale.size()-1));
+		
+		for(int i=lastIndex; i<partenza.size(); i++) {
+			if(!parziale.contains(partenza.get(i))) {
+				parziale.add(partenza.get(i));
+				cerca1(parziale, L+1, m);
+				parziale.remove(partenza.get(i));
+			}
 		}
 	}
 
-	public double calcolaMedia(Set<Esame> esami) {
+	public double calcolaMedia(List<Esame> esami) {
 		
 		int crediti = 0;
 		int somma = 0;
@@ -107,7 +126,7 @@ public class Model {
 		return somma/crediti;
 	}
 	
-	public int sommaCrediti(Set<Esame> esami) {
+	public int sommaCrediti(List<Esame> esami) {
 		int somma = 0;
 		
 		for(Esame e : esami)
